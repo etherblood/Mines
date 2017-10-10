@@ -1,6 +1,7 @@
 package mines;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -19,16 +20,14 @@ public class Simulator {
     public void simulate(long mines, long visible, int simulationCount, int[] mineCountResult) {
         List<Constraint> constraints = createConstraints(visible, mines);
         optimizeConstraints(constraints);
-        calls = fails = 0;
         for (int i = 0; i < simulationCount; i++) {
-            long combination = generateCombinationFast(mines, visible, new ArrayList<>(constraints));
+            long combination = generateCombination(mines, visible, new ArrayList<>(constraints));
             while (combination != 0) {
                 int square = Long.numberOfTrailingZeros(combination);
                 mineCountResult[square]++;
                 combination ^= Util.toFlag(square);
             }
         }
-        System.out.println("calls: " + calls + ", fails: " + fails);
     }
 
     private List<Constraint> createConstraints(long visible, long mines) {
@@ -71,6 +70,8 @@ public class Simulator {
                 }
             }
         }
+        Comparator<Constraint> maskSizeComparator = Comparator.comparingInt(c -> Long.bitCount(c.getMask()));
+        constraints.sort(maskSizeComparator.reversed());
     }
 
     private boolean filter(Constraint c) {
@@ -99,30 +100,9 @@ public class Simulator {
         return false;
     }
 
-    private long calls, fails;
-
     private long generateCombination(long mines, long visible, List<Constraint> constraints) {
-        calls++;
-        int mineCount = Long.bitCount(mines);
-        long min = mines & visible;
-        long max = mines | ~visible;
-        outer:
-        while (true) {
-            long candidate = Util.selectRandomBits(rng, min, max, mineCount);
-            for (Constraint constraint : constraints) {
-                if (!constraint.isValid(candidate)) {
-                    fails++;
-                    continue outer;
-                }
-            }
-            return candidate;
-        }
-    }
-
-    private long generateCombinationFast(long mines, long visible, List<Constraint> constraints) {
-        calls++;
-        long min = mines & visible;
-        long max = mines | ~visible;
-        return Util.selectConstrainedRandomBits(rng, min, max, constraints);
+        long lowerBound = mines & visible;
+        long upperBound = mines | ~visible;
+        return Util.constrainedRandomBits(rng, lowerBound, upperBound, constraints);
     }
 }

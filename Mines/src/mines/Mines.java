@@ -24,18 +24,18 @@ public class Mines {
         Random rng = new Random(seed);
         Simulator simulator = new Simulator(rng);
 
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1000; i++) {
             playGame(rng, simulator);
         }
     }
 
     private static void playGame(Random rng, Simulator simulator) {
-        long mines = Util.selectRandomBits(rng, 0, ~0, 16);
+        long mines = Util.randomBits(rng, 0, ~0, 16);
         SmallMinesState state = new SmallMinesState(mines);
         state.testSquare(Util.randomBit(rng, ~mines), false);
 
         int[] mineCountResult = new int[64];
-        int iterationCount = 100000;
+        int iterationCount = 10000;
 
         System.out.println(PRINTER.getFullStateString(state.getMines(), state.getVisible()));
         System.out.println();

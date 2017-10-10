@@ -34,42 +34,36 @@ public class Util {
         return Long.numberOfTrailingZeros(bitFlags);
     }
 
-    public static long selectRandomBits(Random rng, long min, long max, int selectCount) {
-        assert (min & max) == min;
-        assert Long.bitCount(min) <= selectCount && selectCount <= Long.bitCount(max);
-        int minCount = Long.bitCount(min);
-        while (minCount != selectCount) {
-            long bits = min | (rng.nextLong() & max);
-            minCount = Long.bitCount(bits);
-            if (minCount > selectCount) {
-                max = bits;
-            } else {
-                min = bits;
-            }
-        }
-        return min;
-    }
-
-    public static long selectConstrainedRandomBits(Random rng, long min, long max, List<Constraint> constraints) {
-        assert (min & max) == min;
-        int solvedConstraints = 0;
-        int iterations = 0;
-        long bits = min | (rng.nextLong() & max);
-        while (solvedConstraints < constraints.size()) {
-            Constraint constraint = constraints.get(iterations % constraints.size());
+    public static long constrainedRandomBits(Random rng, long lowerBound, long upperBound, List<Constraint> constraints) {
+        assert (lowerBound & upperBound) == lowerBound;
+        long bits = lowerBound | (rng.nextLong() & upperBound);
+        for (int solvedConstraints = 0; solvedConstraints < constraints.size(); solvedConstraints++) {
+            Constraint constraint = constraints.get(solvedConstraints);
             if (!constraint.isValid(bits)) {
-                long lower = min & constraint.getMask();
-                long upper = max & constraint.getMask();
-                long masked = Util.selectRandomBits(rng, lower, upper, constraint.getCount());
-                bits = masked | (bits & ~constraint.getMask());
+                solvedConstraints = 0;
+                long mask = constraint.getMask();
+                long maskedBits = Util.randomBits(rng, lowerBound & mask, upperBound & mask, constraint.getCount());
+                bits = maskedBits | (bits & ~mask);
                 assert constraint.isValid(bits);
-                solvedConstraints = 1;
-            } else {
-                solvedConstraints++;
             }
-            iterations++;
         }
         return bits;
+    }
+
+    public static long randomBits(Random rng, long lowerBound, long upperBound, int targetCount) {
+        assert (lowerBound & upperBound) == lowerBound;
+        assert Long.bitCount(lowerBound) <= targetCount && targetCount <= Long.bitCount(upperBound);
+        int bitsCount = Long.bitCount(lowerBound);
+        while (bitsCount != targetCount) {
+            long bits = lowerBound | (rng.nextLong() & upperBound);
+            bitsCount = Long.bitCount(bits);
+            if (bitsCount > targetCount) {
+                upperBound = bits;
+            } else {
+                lowerBound = bits;
+            }
+        }
+        return lowerBound;
     }
 
     public static long toFlag(int square) {
