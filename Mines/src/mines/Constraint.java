@@ -10,6 +10,7 @@ public class Constraint {
     private final int count;
 
     public Constraint(long mask, int count) {
+        assert Long.bitCount(mask) >= count;
         this.count = count;
         this.mask = mask;
     }

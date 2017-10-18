@@ -42,7 +42,7 @@ public class Util {
             if (!constraint.isValid(bits)) {
                 solvedConstraints = 0;
                 long mask = constraint.getMask();
-                long maskedBits = Util.randomBits(rng, lowerBound & mask, upperBound & mask, constraint.getCount());
+                long maskedBits = randomBits(rng, lowerBound & mask, upperBound & mask, constraint.getCount());
                 bits = maskedBits | (bits & ~mask);
                 assert constraint.isValid(bits);
             }

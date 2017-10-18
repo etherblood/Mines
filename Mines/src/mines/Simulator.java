@@ -18,7 +18,7 @@ public class Simulator {
     }
 
     public void simulate(long mines, long visible, int simulationCount, int[] mineCountResult) {
-        List<Constraint> constraints = createConstraints(visible, mines);
+        List<Constraint> constraints = createConstraints(mines, visible);
         optimizeConstraints(constraints);
         for (int i = 0; i < simulationCount; i++) {
             long combination = generateCombination(mines, visible, new ArrayList<>(constraints));
@@ -29,8 +29,16 @@ public class Simulator {
             }
         }
     }
+    
+    public void applyRandomCombination(SmallMinesState source, SmallMinesState dest) {
+        List<Constraint> constraints = createConstraints(source.getMines(), source.getVisible());
+        optimizeConstraints(constraints);
+        long mines = generateCombination(source.getMines(), source.getVisible(), constraints);
+        dest.setMines(mines);
+        dest.setVisible(source.getVisible());
+    }
 
-    private List<Constraint> createConstraints(long visible, long mines) {
+    private List<Constraint> createConstraints(long mines, long visible) {
         List<Constraint> constraints = new ArrayList<>();
         constraints.add(new Constraint(~0, Long.bitCount(mines)));
         long tmp = visible & ~mines;
