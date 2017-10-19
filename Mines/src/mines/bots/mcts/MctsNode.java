@@ -14,10 +14,6 @@ public class MctsNode {
         return childs != null;
     }
 
-//    public int numChilds() {
-//        return childs.length;
-//    }
-
     public void initChilds(int size) {
         assert childs == null;
         childs = new MctsNode[size];
@@ -49,10 +45,6 @@ public class MctsNode {
     public float winrate(int player) {
         return score / visitScore();
     }
-
-//    public boolean isLeaf() {
-//        return childs == null;
-//    }
 
     public void increaseScores(float result) {
         score += result;

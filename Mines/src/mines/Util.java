@@ -70,7 +70,7 @@ public class Util {
         return 1L << square;
     }
 
-    public static long neighborhood(int square) {
+    public static long neighbors(int square) {
         return NEIGHBORHOOD[square];
     }
 

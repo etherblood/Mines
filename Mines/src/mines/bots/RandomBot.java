@@ -1,8 +1,8 @@
 package mines.bots;
 
 import java.util.Random;
-import mines.SmallMinesState;
 import mines.Util;
+import mines.state.MinesStateReadable;
 
 public class RandomBot implements Bot {
 
@@ -13,10 +13,9 @@ public class RandomBot implements Bot {
     }
 
     @Override
-    public Move findMove(SmallMinesState state) {
-        long hidden = ~state.getVisible();
-        long mines = state.getMines();
-        return new Move(Util.randomBit(rng, hidden), rng.nextInt(Long.bitCount(hidden)) < Long.bitCount(hidden & mines));
+    public int findMove(MinesStateReadable state) {
+        long hidden = ~state.getRevealed();
+        return Util.randomBit(rng, hidden);
     }
 
 }

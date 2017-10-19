@@ -1,11 +1,11 @@
 package mines.bots;
 
-import mines.SmallMinesState;
+import mines.state.MinesStateReadable;
 
 /**
  *
  * @author Philipp
  */
 public interface Bot {
-    Move findMove(SmallMinesState state);
+    int findMove(MinesStateReadable state);
 }

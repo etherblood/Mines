@@ -2,10 +2,10 @@ package mines.bots.mcts;
 
 import java.util.Random;
 import mines.Simulator;
-import mines.SmallMinesState;
 import mines.bots.Bot;
-import mines.bots.CombinationsBot;
-import mines.bots.Move;
+import mines.bots.CombinationsSimulationBot;
+import mines.state.FastMinesState;
+import mines.state.MinesStateReadable;
 
 /**
  *
@@ -15,23 +15,22 @@ public class MctsBot implements Bot {
 
     private final Simulator simulator;
     private final MonteCarloAgent agent;
-    private final SmallMinesState state = new SmallMinesState();
     private final int iterations;
 
-    public MctsBot(Random rng, int iterations, CombinationsBot playoutBot) {
-        this.agent = new MonteCarloAgent(new SmallMinesState(), playoutBot, rng);
+    public MctsBot(Simulator simulator, Random rng, int iterations, CombinationsSimulationBot playoutBot) {
+        this.agent = new MonteCarloAgent(playoutBot, rng);
         this.iterations = iterations;
-        this.simulator = new Simulator(rng);
+        this.simulator = simulator;
     }
 
     @Override
-    public Move findMove(SmallMinesState sourceState) {
+    public int findMove(MinesStateReadable sourceState) {
         MctsNode root = new MctsNode();
         for (int i = 0; i < iterations; i++) {
-            simulator.applyRandomCombination(sourceState, state);
-            agent.iteration(state, root);
+            long mines = simulator.randomCombination(sourceState);
+            agent.iteration(new FastMinesState(mines, sourceState.getRevealed()), root);
         }
-        Move bestMove = agent.bestChild(sourceState, root);
+        int bestMove = agent.bestChild(sourceState, root);
         System.out.println("confidence: " + agent.simulationConfidence(root, bestMove));
         return bestMove;
     }

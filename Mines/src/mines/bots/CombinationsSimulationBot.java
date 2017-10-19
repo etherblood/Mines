@@ -5,35 +5,34 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import mines.Simulator;
-import mines.SmallMinesState;
 import mines.Util;
+import mines.state.MinesStateReadable;
 
 /**
  *
  * @author Philipp
  */
-public class CombinationsBot implements Bot {
+public class CombinationsSimulationBot implements Bot {
 
     private final Simulator simulator;
     private final Random rng;
-    private final SmallMinesState state = new SmallMinesState();
     private final int iterations;
     private final int[] mineCounts = new int[64];
 
-    public CombinationsBot(Simulator simulator, Random rng, int iterations) {
+    public CombinationsSimulationBot(Simulator simulator, Random rng, int iterations) {
         this.simulator = simulator;
         this.rng = rng;
         this.iterations = iterations;
     }
 
     @Override
-    public Move findMove(SmallMinesState sourceState) {
+    public int findMove(MinesStateReadable sourceState) {
         reset();
         for (int i = 0; i < iterations; i++) {
-            simulator.applyRandomCombination(sourceState, state);
-            addStats(state.getMines());
+            long mines = simulator.randomCombination(sourceState);
+            addStats(mines);
         }
-        return bestMove(~sourceState.getVisible());
+        return bestMove(~sourceState.getRevealed());
     }
 
     private void addStats(long mines) {
@@ -44,26 +43,24 @@ public class CombinationsBot implements Bot {
         }
     }
 
-    private Move bestMove(long hidden) {
+    private int bestMove(long hidden) {
         List<Integer> bestSquares = new ArrayList<>();
-        int bestScore = -1;
+        int bestScore = Integer.MAX_VALUE;
         while (hidden != 0) {
             int square = Long.numberOfTrailingZeros(hidden);
             int score = mineCounts[square];
-            score = Math.max(score, iterations - score);
-            if (score >= bestScore) {
-                if (score > bestScore) {
+            if (score <= bestScore) {
+                if (score < bestScore) {
+                    bestScore = score;
                     bestSquares.clear();
                 }
                 bestSquares.add(square);
-                bestScore = score;
             }
             hidden ^= Util.toFlag(square);
         }
-        int square = bestSquares.get(rng.nextInt(bestSquares.size()));
-        return new Move(square, 2 * mineCounts[square] > iterations);
+        return bestSquares.get(rng.nextInt(bestSquares.size()));
     }
-    
+
     private void reset() {
         Arrays.fill(mineCounts, 0);
     }
