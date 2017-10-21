@@ -20,7 +20,9 @@ public class ConstrainedRandomBot implements Bot {
     @Override
     public int findMove(MinesStateReadable state) {
         List<Constraint> constraints = constraintGenerator.generateConstraints(state);
-        long mines = Util.constrainedRandomBits(rng, 0, ~state.getRevealed(), constraints);
+        long lowerBound = 0;
+        long upperBound = ~state.getRevealed();
+        long mines = Util.constrainedRandomBits(rng, lowerBound, upperBound, constraints);
         long moves = ~mines & ~state.getRevealed();
         return Util.randomBit(rng, moves);
     }

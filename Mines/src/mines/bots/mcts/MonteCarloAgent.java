@@ -1,5 +1,7 @@
 package mines.bots.mcts;
 
+import java.util.HashMap;
+import java.util.Map;
 import mines.bots.Bot;
 import java.util.Random;
 import mines.IntList;
@@ -16,7 +18,6 @@ public class MonteCarloAgent {
 
     private final SecureMover secureMover = new SecureMover();
     private final Random rng;
-    private MinesState currentState;
     private final UctScore uct = new UctScore();
     private final VisitScore visit = new VisitScore();
     private final Bot playoutBot;
@@ -29,24 +30,27 @@ public class MonteCarloAgent {
 
     public void iteration(MinesState state, MctsNode node) {
         assert !state.isOver();
-        currentState = state;
         IntList path = new IntList(64);
-        MctsNode currentNode = select(node, path);
-        tryExpand(currentNode, path);
-        float result = playout();
+        MctsNode currentNode = select(state, node, path);
+        tryExpand(state, currentNode, path);
+        float result = playout(state);
+        playouts++;
+        playoutResults += result;
         propagateResult(node, path, result);
     }
 
-    private float playout() {
-        while (!currentState.isOver()) {
-            secureMover.applySecureMoves(currentState);
-            if (currentState.isOver()) {
+    public static long playouts = 0, playoutResults = 0;
+
+    private float playout(MinesState state) {
+        while (!state.isOver()) {
+            secureMover.applySecureMoves(state);
+            if (state.isOver()) {
                 break;
             }
-            int move = playoutBot.findMove(currentState);
-            currentState.reveal(move);
+            int move = playoutBot.findMove(state);
+            state.reveal(move);
         }
-        return currentState.isWon() ? 1 : 0;
+        return state.isWon() ? 1 : 0;
     }
 
     private void propagateResult(MctsNode startNode, IntList path, float result) {
@@ -61,28 +65,28 @@ public class MonteCarloAgent {
         currentNode.increaseVisits(1);
     }
 
-    private MctsNode select(MctsNode startNode, IntList path) {
+    private MctsNode select(MinesState state, MctsNode startNode, IntList path) {
         MctsNode currentNode = startNode;
-        while (currentNode.isInitialized() && !currentState.isOver()) {
-            int move = selectChild(currentNode, uct, currentState);
+        while (currentNode.isInitialized() && !state.isOver()) {
+            int move = selectChild(currentNode, uct, state);
             path.push(move);
-            currentNode = gotoChild(currentNode, move);
+            currentNode = gotoChild(state, currentNode, move);
         }
         return currentNode;
     }
 
-    private MctsNode gotoChild(MctsNode currentNode, int move) {
-        currentState.reveal(move);
+    private MctsNode gotoChild(MinesState state, MctsNode currentNode, int move) {
+        state.reveal(move);
         return currentNode.getChild(move);
     }
 
-    private void tryExpand(MctsNode currentNode, IntList path) {
+    private void tryExpand(MinesState state, MctsNode currentNode, IntList path) {
         if (!currentNode.isInitialized()) {
             currentNode.initChilds(64);
-            if (!currentState.isOver()) {
-                int move = playoutBot.findMove(currentState);
+            if (!state.isOver()) {
+                int move = playoutBot.findMove(state);
                 path.push(move);
-                gotoChild(currentNode, move);
+                gotoChild(state, currentNode, move);
             }
         }
     }
@@ -131,8 +135,13 @@ public class MonteCarloAgent {
     }
 
     public float simulationConfidence(MctsNode node, int move) {
-        MctsNode c = node.getChild(move);
-        return c.visitScore() / node.visitScore();
+        MctsNode child = node.getChild(move);
+        return child.visitScore() / node.visitScore();
+    }
+
+    public float simulationWinrate(MctsNode node, int move) {
+        MctsNode child = node.getChild(move);
+        return child.score() / child.visitScore();
     }
 
     Random getRng() {
