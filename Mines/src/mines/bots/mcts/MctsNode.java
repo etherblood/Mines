@@ -20,9 +20,9 @@ public class MctsNode {
     }
 
     public MctsNode getChild(int x) {
-        if (childs[x] == null) {
-            childs[x] = new MctsNode();
-        }
+//        if (childs[x] == null) {
+//            childs[x] = new MctsNode();
+//        }
         return childs[x];
     }
 

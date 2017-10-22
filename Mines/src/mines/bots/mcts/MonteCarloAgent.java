@@ -22,10 +22,15 @@ public class MonteCarloAgent {
     private final VisitScore visit = new VisitScore();
     private final Bot playoutBot;
     private final IntList bestMoves = new IntList(64);
+//    private final Map<Long, MctsNode> transpositions = new HashMap<>();
 
     public MonteCarloAgent(Bot playoutBot, Random rng) {
         this.playoutBot = playoutBot;
         this.rng = rng;
+    }
+
+    public void reset() {
+//        transpositions.clear();
     }
 
     public void iteration(MinesState state, MctsNode node) {
@@ -37,6 +42,9 @@ public class MonteCarloAgent {
         playouts++;
         playoutResults += result;
         propagateResult(node, path, result);
+        assert emptyNode.score() == 0;
+        assert emptyNode.visitScore() == 0;
+        assert !emptyNode.isInitialized();
     }
 
     public static long playouts = 0, playoutResults = 0;
@@ -77,7 +85,28 @@ public class MonteCarloAgent {
 
     private MctsNode gotoChild(MinesState state, MctsNode currentNode, int move) {
         state.reveal(move);
-        return currentNode.getChild(move);
+        MctsNode child = currentNode.getChild(move);
+        if (child == null) {
+            child = new MctsNode();
+//            child = transpositions.get(state.getRevealed());
+//            if (child != null) {
+//                System.out.println("hue!");
+//            } else {
+//                child = transpositions.computeIfAbsent(state.getRevealed(), k -> new MctsNode());
+//            }
+            currentNode.setChild(move, child);
+        }
+        return child;
+    }
+
+    private final static MctsNode emptyNode = new MctsNode();
+
+    private static MctsNode getChildOrEmpty(MctsNode currentNode, int move) {
+        MctsNode child = currentNode.getChild(move);
+        if (child == null) {
+            return emptyNode;
+        }
+        return child;
     }
 
     private void tryExpand(MinesState state, MctsNode currentNode, IntList path) {
@@ -97,7 +126,7 @@ public class MonteCarloAgent {
         float childsTotal = 0;
         while (tmp != 0) {
             int square = Long.numberOfTrailingZeros(tmp);
-            childsTotal += node.getChild(square).score();
+            childsTotal += getChildOrEmpty(node, square).score();
             tmp ^= Util.toFlag(square);
         }
 
@@ -105,7 +134,7 @@ public class MonteCarloAgent {
         tmp = hidden;
         while (tmp != 0) {
             int square = Long.numberOfTrailingZeros(tmp);
-            MctsNode child = node.getChild(square);
+            MctsNode child = getChildOrEmpty(node, square);
             float visitScore = child.visitScore();
             float playerScore = child.score();
             float childScore = score.score(childsTotal, visitScore, playerScore);
@@ -135,12 +164,12 @@ public class MonteCarloAgent {
     }
 
     public float simulationConfidence(MctsNode node, int move) {
-        MctsNode child = node.getChild(move);
+        MctsNode child = getChildOrEmpty(node, move);
         return child.visitScore() / node.visitScore();
     }
 
     public float simulationWinrate(MctsNode node, int move) {
-        MctsNode child = node.getChild(move);
+        MctsNode child = getChildOrEmpty(node, move);
         return child.score() / child.visitScore();
     }
 

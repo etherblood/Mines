@@ -31,11 +31,11 @@ public class Main {
         Random rng = new SecureRandom();//new Random(seed);
         ConstraintGenerator constraintGenerator = new ConstraintGenerator();
 
-        Bot playoutBot = new CombinationsSimulationBot(constraintGenerator, rng, 10);
+        Bot playoutBot = new CombinationsSimulationBot(constraintGenerator, rng, 10000);
         playoutBot = new ConstrainedRandomBot(constraintGenerator, rng);
-        Bot bot = new MctsBot(constraintGenerator, rng, 100000, playoutBot);
+        Bot bot = new MctsBot(constraintGenerator, rng, 1000, 1000, playoutBot);
 
-//        bot = new ConstrainedRandomBot(new ConstraintGenerator(), rng);
+//        bot = playoutBot;//new ConstrainedRandomBot(new ConstraintGenerator(), rng);
         boolean verbose = false;
         long wins = 0, losses = 0;
         for (int i = 0; i < 10; i++) {
