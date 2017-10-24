@@ -12,7 +12,7 @@ public interface MinesStateReadable {
 
     boolean isLost();
 
-    default boolean isOver() {
+    default boolean isGameOver() {
         return isWon() || isLost();
     }
 

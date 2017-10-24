@@ -1,6 +1,10 @@
 package mines.bots;
 
+import java.util.List;
+import mines.Constraint;
+import mines.ConstraintGenerator;
 import mines.Util;
+import mines.state.MineConstraints;
 import mines.state.MinesState;
 
 /**
@@ -9,45 +13,41 @@ import mines.state.MinesState;
  */
 public class SecureMover {
 
+    private final ConstraintGenerator constraintGenerator;
+
+    public SecureMover(ConstraintGenerator constraintGenerator) {
+        this.constraintGenerator = constraintGenerator;
+    }
+
     public void applySecureMoves(MinesState state) {
-        if(state.isOver()) {
+        applySecureMoves(state, new MineConstraints(constraintGenerator.generateConstraints(state)));
+    }
+
+    public void applySecureMoves(MinesState state, MineConstraints constraints) {
+        if (state.isGameOver()) {
             return;
         }
 
-        boolean repeat;
-        long flags = 0;
+        long secureMoves;
         do {
-            repeat = false;
-            long iterator = state.getRevealed();
-            while (iterator != 0) {
-                int square = Long.numberOfTrailingZeros(iterator);
-
-                long neighbors = Util.neighbors(square);
-                long neighborFlags = flags & neighbors;
-                int neighborFlagCount = Long.bitCount(neighborFlags);
-                long unknownNeighbors = neighbors & ~state.getRevealed() & ~neighborFlags;
-                int neighborMineCount = state.countNeighborMines(square) - neighborFlagCount;
-                if (neighborMineCount == 0 && unknownNeighbors != 0) {
-                    makeMoves(state, unknownNeighbors);
-                    iterator |= unknownNeighbors;
-                    repeat = true;
+            secureMoves = 0;
+            for (Constraint constraint : constraints.getConstraints()) {
+                if (constraint.getMineCount() == 0) {
+                    secureMoves |= constraint.getSquares();
                 }
-                int unknownNeighborCount = Long.bitCount(unknownNeighbors);
-                if (neighborMineCount == unknownNeighborCount && (flags | unknownNeighbors) != flags) {
-                    flags |= unknownNeighbors;
-                    repeat = true;
-                }
-
-                iterator ^= Util.toFlag(square);
             }
-        } while (repeat);
+            secureMoves &= ~state.getRevealed();
+            makeMoves(state, constraints, secureMoves);
+        } while (secureMoves != 0);
     }
 
-    private void makeMoves(MinesState state, long moves) {
+    private void makeMoves(MinesState state, MineConstraints constraints, long moves) {
         while (moves != 0) {
             int move = Long.numberOfTrailingZeros(moves);
             state.reveal(move);
+            constraints.addConstraint(new Constraint(Util.neighbors(move) & ~state.getRevealed(), state.countNeighborMines(move)));
             moves ^= Util.toFlag(move);
+            assert !state.isLost();
         }
     }
 }

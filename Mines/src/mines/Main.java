@@ -35,23 +35,23 @@ public class Main {
         playoutBot = new ConstrainedRandomBot(constraintGenerator, rng);
         Bot bot = new MctsBot(constraintGenerator, rng, 1000, 1000, playoutBot);
 
-//        bot = playoutBot;//new ConstrainedRandomBot(new ConstraintGenerator(), rng);
+        bot = playoutBot;//new ConstrainedRandomBot(new ConstraintGenerator(), rng);
         boolean verbose = false;
         long wins = 0, losses = 0;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1000000; i++) {
             long mines = Util.randomBits(rng, totalMineCount);
             FastMinesState state = new FastMinesState(mines);
             state.reveal(Util.randomBit(rng, ~mines));
             playBotGame(state, bot, verbose);
             if (state.isWon()) {
                 wins++;
-                System.out.println("win");
-                System.out.println(PRINTER.getFullStateString(state));
+//                System.out.println("win");
+//                System.out.println(PRINTER.getFullStateString(state));
             } else {
                 assert state.isLost();
                 losses++;
-                System.out.println("loss");
-                System.out.println(PRINTER.getFullStateString(state));
+//                System.out.println("loss");
+//                System.out.println(PRINTER.getFullStateString(state));
             }
         }
         System.out.println("wins: " + wins);
@@ -68,15 +68,17 @@ public class Main {
             System.out.println();
             System.out.println(PRINTER.getVisibleStateString(state));
         }
-        new SecureMover().applySecureMoves(state);
-        while (!state.isOver()) {
+        new SecureMover(new ConstraintGenerator()).applySecureMoves(state);
+        while (!state.isGameOver()) {
             int move = bot.findMove(state);
             int bestSquare = move;
             if (verbose) {
-                System.out.println("clicking: " + bestSquare);
+                System.out.println("revealing: " + bestSquare + " (" + Util.x(bestSquare) + "," + Util.y(bestSquare) + ")");
             }
             state.reveal(bestSquare);
-            new SecureMover().applySecureMoves(state);
+            if(!state.isGameOver()) {
+                new SecureMover(new ConstraintGenerator()).applySecureMoves(state);
+            }
             if (state.isLost()) {
                 if (verbose) {
                     System.out.println("game over");

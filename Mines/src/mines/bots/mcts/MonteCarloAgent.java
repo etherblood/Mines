@@ -1,9 +1,8 @@
 package mines.bots.mcts;
 
-import java.util.HashMap;
-import java.util.Map;
 import mines.bots.Bot;
 import java.util.Random;
+import mines.ConstraintGenerator;
 import mines.IntList;
 import mines.Util;
 import mines.bots.SecureMover;
@@ -16,7 +15,7 @@ import mines.state.MinesStateReadable;
  */
 public class MonteCarloAgent {
 
-    private final SecureMover secureMover = new SecureMover();
+    private final SecureMover secureMover = new SecureMover(new ConstraintGenerator());
     private final Random rng;
     private final UctScore uct = new UctScore();
     private final VisitScore visit = new VisitScore();
@@ -34,7 +33,7 @@ public class MonteCarloAgent {
     }
 
     public void iteration(MinesState state, MctsNode node) {
-        assert !state.isOver();
+        assert !state.isGameOver();
         IntList path = new IntList(64);
         MctsNode currentNode = select(state, node, path);
         tryExpand(state, currentNode, path);
@@ -50,9 +49,9 @@ public class MonteCarloAgent {
     public static long playouts = 0, playoutResults = 0;
 
     private float playout(MinesState state) {
-        while (!state.isOver()) {
+        while (!state.isGameOver()) {
             secureMover.applySecureMoves(state);
-            if (state.isOver()) {
+            if (state.isGameOver()) {
                 break;
             }
             int move = playoutBot.findMove(state);
@@ -75,7 +74,7 @@ public class MonteCarloAgent {
 
     private MctsNode select(MinesState state, MctsNode startNode, IntList path) {
         MctsNode currentNode = startNode;
-        while (currentNode.isInitialized() && !state.isOver()) {
+        while (currentNode.isInitialized() && !state.isGameOver()) {
             int move = selectChild(currentNode, uct, state);
             path.push(move);
             currentNode = gotoChild(state, currentNode, move);
@@ -112,7 +111,7 @@ public class MonteCarloAgent {
     private void tryExpand(MinesState state, MctsNode currentNode, IntList path) {
         if (!currentNode.isInitialized()) {
             currentNode.initChilds(64);
-            if (!state.isOver()) {
+            if (!state.isGameOver()) {
                 int move = playoutBot.findMove(state);
                 path.push(move);
                 gotoChild(state, currentNode, move);

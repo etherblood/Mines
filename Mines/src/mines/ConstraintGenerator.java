@@ -29,6 +29,7 @@ public class ConstraintGenerator {
     }
 
     private List<Constraint> createConstraints(MinesStateReadable state) {
+        assert !state.isGameOver();
         List<Constraint> constraints = new ArrayList<>();
         constraints.add(new Constraint(~state.getRevealed(), state.countTotalMines()));
         constraints.add(new Constraint(state.getRevealed(), 0));
@@ -80,7 +81,7 @@ public class ConstraintGenerator {
         constraints.sort(maskSizeComparator.reversed());
     }
 
-    private boolean filter(Constraint c, List<Constraint> result) {
+    public static boolean filter(Constraint c, List<Constraint> result) {
         int maskCount = Long.bitCount(c.getSquares());
         assert 0 <= c.getMineCount() && c.getMineCount() <= maskCount;
         if (maskCount > 1) {
@@ -95,7 +96,7 @@ public class ConstraintGenerator {
         return c.getSquares() == 0;
     }
 
-    private void createConstraints(long iterator, int minesPerSquare, List<Constraint> result) {
+    private static void createConstraints(long iterator, int minesPerSquare, List<Constraint> result) {
         while (iterator != 0) {
             int square = Long.numberOfTrailingZeros(iterator);
             long flag = Util.toFlag(square);
@@ -104,34 +105,24 @@ public class ConstraintGenerator {
         }
     }
 
-    private boolean merge(Constraint a, Constraint b, List<Constraint> result) {
+    public static boolean merge(Constraint a, Constraint b, List<Constraint> result) {
         long sharedSquares = a.getSquares() & b.getSquares();
         if (sharedSquares == 0) {
             return false;
         }
-
         if (mergeEqual(a, b, result)) {
             return true;
         }
-
-        if (mergeSubset(a, b, result)) {
+        if (mergeSubset(a, b, result) || mergeSubset(b, a, result)) {
             return true;
         }
-        if (mergeSubset(b, a, result)) {
+        if (mergeForced(a, b, result) || mergeForced(b, a, result)) {
             return true;
         }
-
-        if (mergeForced(a, b, result)) {
-            return true;
-        }
-        if (mergeForced(b, a, result)) {
-            return true;
-        }
-
         return false;
     }
 
-    private boolean mergeEqual(Constraint a, Constraint b, List<Constraint> result) {
+    private static boolean mergeEqual(Constraint a, Constraint b, List<Constraint> result) {
         if (a.getSquares() == b.getSquares() && a.getMineCount() == b.getMineCount()) {
             result.add(a);
             return true;
@@ -139,18 +130,18 @@ public class ConstraintGenerator {
         return false;
     }
 
-    private boolean mergeSubset(Constraint a, Constraint b, List<Constraint> result) {
+    private static boolean mergeSubset(Constraint a, Constraint b, List<Constraint> result) {
         long sharedSquares = a.getSquares() & b.getSquares();
         if (sharedSquares == a.getSquares()) {
             //a is subset of b
-            result.add(new Constraint(b.getSquares() ^ a.getSquares(), b.getMineCount() - a.getMineCount()));
+            result.add(new Constraint(b.getSquares() ^ sharedSquares, b.getMineCount() - a.getMineCount()));
             result.add(a);
             return true;
         }
         return false;
     }
 
-    private boolean mergeForced(Constraint a, Constraint b, List<Constraint> result) {
+    private static boolean mergeForced(Constraint a, Constraint b, List<Constraint> result) {
         long sharedSquares = a.getSquares() & b.getSquares();
 
         long aOnlySquares = a.getSquares() ^ sharedSquares;
