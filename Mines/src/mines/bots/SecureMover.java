@@ -1,6 +1,5 @@
 package mines.bots;
 
-import java.util.List;
 import mines.Constraint;
 import mines.ConstraintGenerator;
 import mines.Util;

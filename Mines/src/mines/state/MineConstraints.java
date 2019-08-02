@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import mines.Constraint;
 import mines.ConstraintGenerator;
+import mines.Util;
 
 /**
  *
@@ -14,10 +15,14 @@ public class MineConstraints {
 
     private final List<Constraint> constraints;
 
+    public MineConstraints(MineConstraints constraints) {
+        this(constraints.constraints);
+    }
+
     public MineConstraints(List<Constraint> constraints) {
         this.constraints = constraints;
     }
-
+    
     public void addConstraint(Constraint constraint) {
         constraints.add(constraint);
         for (int i = constraints.size() - 1; i < constraints.size(); i++) {
@@ -39,6 +44,29 @@ public class MineConstraints {
         }
         Comparator<Constraint> maskSizeComparator = Comparator.comparingInt(c -> Long.bitCount(c.getSquares()));
         constraints.sort(maskSizeComparator.reversed().thenComparingLong(Constraint::getSquares));
+    }
+
+    public int countNeighborMines(int square) {
+        long neighborhood = Util.neighbors(square);
+        int count = 0;
+        for (Constraint constraint : constraints) {
+            if ((constraint.getSquares() & neighborhood) == constraint.getSquares()) {
+                neighborhood &= ~constraint.getSquares();
+                count += constraint.getMineCount();
+            }
+        }
+        assert neighborhood == 0;
+        return count;
+    }
+
+    public long getRevealed() {
+        long result = 0;
+        for (Constraint constraint : constraints) {
+            if (constraint.getMineCount() == 0) {
+                result |= constraint.getSquares();
+            }
+        }
+        return result;
     }
 
     public List<Constraint> getConstraints() {

@@ -6,6 +6,8 @@ package mines.state;
  */
 public interface MinesStateReadable {
 
+    long getMines();
+    
     long getRevealed();
 
     boolean isWon();

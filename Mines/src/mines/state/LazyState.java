@@ -7,13 +7,13 @@ import mines.Util;
  *
  * @author Philipp
  */
-public class SecureStartState implements MinesState {
+public class LazyState implements MinesState {
 
     private final Random random;
     private final int mineCount;
     private MinesState state = null;
 
-    public SecureStartState(Random random, int mineCount) {
+    public LazyState(Random random, int mineCount) {
         this.random = random;
         this.mineCount = mineCount;
     }
@@ -26,6 +26,11 @@ public class SecureStartState implements MinesState {
         } else {
             state.reveal(square);
         }
+    }
+
+    @Override
+    public long getMines() {
+        return state.getMines();
     }
 
     @Override

@@ -8,8 +8,8 @@ import mines.Util;
  */
 public class FastMinesState implements MinesState {
 
-    private final long mines;
-    private long revealed;
+    final long mines;
+    long revealed;
 
     public FastMinesState(long mines) {
         this(mines, 0);
@@ -18,6 +18,12 @@ public class FastMinesState implements MinesState {
     public FastMinesState(long mines, long revealed) {
         this.mines = mines;
         this.revealed = revealed;
+    }
+
+    @Override
+    public long getMines() {
+        assert isGameOver();
+        return mines;
     }
 
     @Override

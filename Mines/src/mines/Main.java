@@ -1,5 +1,6 @@
 package mines;
 
+import mines.state.MinesPrinter;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.util.Random;
@@ -7,9 +8,10 @@ import mines.bots.Bot;
 import mines.bots.CombinationsSimulationBot;
 import mines.bots.ConstrainedRandomBot;
 import mines.bots.SecureMover;
-import mines.bots.mcts.MctsBot;
-import mines.bots.mcts.MonteCarloAgent;
+import mines.bots.mcts_old.MctsBot;
+import mines.bots.mcts_old.MonteCarloAgent;
 import mines.state.FastMinesState;
+import mines.state.MineConstraints;
 
 /**
  *
@@ -25,33 +27,42 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        int totalMineCount = 16;
+        int totalMineCount = 10;
 //        long seed = System.currentTimeMillis();
 //        System.out.println("seed: " + seed);
         Random rng = new SecureRandom();//new Random(seed);
         ConstraintGenerator constraintGenerator = new ConstraintGenerator();
 
-        Bot playoutBot = new CombinationsSimulationBot(constraintGenerator, rng, 10000);
+        Bot playoutBot = new CombinationsSimulationBot(constraintGenerator, rng, 10000000);
         playoutBot = new ConstrainedRandomBot(constraintGenerator, rng);
-        Bot bot = new MctsBot(constraintGenerator, rng, 1000, 1000, playoutBot);
+        Bot bot = new MctsBot(constraintGenerator, rng, 10000, 100, playoutBot);
 
-        bot = playoutBot;//new ConstrainedRandomBot(new ConstraintGenerator(), rng);
+//        bot = playoutBot;//new ConstrainedRandomBot(new ConstraintGenerator(), rng);
         boolean verbose = false;
         long wins = 0, losses = 0;
-        for (int i = 0; i < 1000000; i++) {
-            long mines = Util.randomBits(rng, totalMineCount);
+        for (int i = 0; i < 10; i++) {
+//            long mines = Util.randomBits(rng, totalMineCount);
+            long mines = Util.randomBits(rng, 0, ~1, totalMineCount);
             FastMinesState state = new FastMinesState(mines);
-            state.reveal(Util.randomBit(rng, ~mines));
+//            state.reveal(Util.randomBit(rng, ~mines));
+            state.reveal(0);
             playBotGame(state, bot, verbose);
             if (state.isWon()) {
                 wins++;
-//                System.out.println("win");
-//                System.out.println(PRINTER.getFullStateString(state));
+                System.out.println("win");
+                System.out.println(PRINTER.getFullStateString(state));
+                System.out.println();
+//                System.out.println(PRINTER.constraintStateString(new MineConstraints(new ConstraintGenerator().generateConstraints(state))));
+//                System.out.println();
             } else {
                 assert state.isLost();
                 losses++;
-//                System.out.println("loss");
-//                System.out.println(PRINTER.getFullStateString(state));
+                System.out.println("loss");
+                System.out.println(PRINTER.getFullStateString(state));
+                System.out.println();
+                FastMinesState previousState = new FastMinesState(state.getMines(), state.getRevealed() & ~state.getMines());
+                System.out.println(PRINTER.constraintStateString(new MineConstraints(new ConstraintGenerator().generateConstraints(previousState))));
+                System.out.println();
             }
         }
         System.out.println("wins: " + wins);

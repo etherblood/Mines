@@ -29,8 +29,12 @@ public class ConstraintGenerator {
     }
 
     private List<Constraint> createConstraints(MinesStateReadable state) {
-        assert !state.isGameOver();
         List<Constraint> constraints = new ArrayList<>();
+        if(state.isGameOver()) {
+            constraints.add(new Constraint(state.getMines(), state.countTotalMines()));
+            constraints.add(new Constraint(~state.getMines(), 0));
+            return constraints;
+        }
         constraints.add(new Constraint(~state.getRevealed(), state.countTotalMines()));
         constraints.add(new Constraint(state.getRevealed(), 0));
         long iterator = state.getRevealed();

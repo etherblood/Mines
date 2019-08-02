@@ -1,4 +1,4 @@
-package mines.bots.mcts;
+package mines.bots.mcts_old;
 
 import java.util.List;
 import java.util.Random;
@@ -43,11 +43,12 @@ public class MctsBot implements Bot {
             long iterator = ~sourceState.getRevealed();
             while (iterator != 0) {
                 int square = Long.numberOfTrailingZeros(iterator);
-                scores[square] += root.getChild(square).visitScore();
+                MctsNode child = root.getChild(square);
+                scores[square] += child == null ? 0 : child.visitScore();
                 iterator ^= Util.toFlag(square);
             }
         }
-        
+
         IntList bestSquares = new IntList(64);
         float bestScore = Float.NEGATIVE_INFINITY;
         long iterator = ~sourceState.getRevealed();

@@ -1,4 +1,4 @@
-package mines.bots.mcts;
+package mines.bots.mcts_old;
 
 import mines.bots.Bot;
 import java.util.Random;

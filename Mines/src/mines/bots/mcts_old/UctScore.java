@@ -1,4 +1,4 @@
-package mines.bots.mcts;
+package mines.bots.mcts_old;
 
 public class UctScore implements ScoringFunction {
     private final static float EPSILON = 1e-6f;

@@ -1,10 +1,7 @@
 package mines.bots;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import mines.Constraint;
 import mines.ConstraintGenerator;
@@ -42,7 +39,6 @@ public class CombinationsSimulationBot implements Bot {
             long mines = Util.constrainedRandomBits(rng, 0, ~sourceState.getRevealed(), constraints);
             addStats(mines);
         }
-        normalizeGroupedSquares(constraints);
         return mineCounts;
     }
 
@@ -51,35 +47,6 @@ public class CombinationsSimulationBot implements Bot {
             int square = Long.numberOfTrailingZeros(mines);
             mineCounts[square]++;
             mines ^= Util.toFlag(square);
-        }
-    }
-    
-    private void normalizeGroupedSquares(List<Constraint> constraints) {
-        long[] squareConstraints = new long[64];
-        for (int i = 0; i < constraints.size(); i++) {
-            Constraint constraint = constraints.get(i);
-            long constraintFlag = Util.toFlag(i);
-            long iterator = constraint.getSquares();
-            while(iterator != 0) {
-                int square = Long.numberOfTrailingZeros(iterator);
-                squareConstraints[square] |= constraintFlag;
-                iterator ^= Util.toFlag(square);
-            }
-        }
-        Map<Long, List<Integer>> groups = new HashMap<>();
-        for (int square = 0; square < squareConstraints.length; square++) {
-            long constraintGroup = squareConstraints[square];
-            groups.computeIfAbsent(constraintGroup, k -> new ArrayList<>()).add(square);
-        }
-        for (List<Integer> group : groups.values()) {
-            float totalMines = 0;
-            for (Integer square : group) {
-                totalMines += mineCounts[square];
-            }
-            float averageMines = totalMines / group.size();
-            for (Integer square : group) {
-                mineCounts[square] = averageMines;
-            }
         }
     }
 
