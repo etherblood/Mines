@@ -57,4 +57,9 @@ public class LazyState implements MinesState {
     public int countTotalMines() {
         return mineCount;
     }
+
+    @Override
+    public void bulkReveal(long squares) {
+        state.bulkReveal(squares);
+    }
 }

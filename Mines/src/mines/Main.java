@@ -8,6 +8,8 @@ import mines.bots.Bot;
 import mines.bots.CombinationsSimulationBot;
 import mines.bots.ConstrainedRandomBot;
 import mines.bots.SecureMover;
+import mines.bots.mcts_new.SmallMctsAgent;
+import mines.bots.mcts_new.SmallMctsBot;
 import mines.bots.mcts_old.MctsBot;
 import mines.bots.mcts_old.MonteCarloAgent;
 import mines.state.FastMinesState;
@@ -35,7 +37,8 @@ public class Main {
 
         Bot playoutBot = new CombinationsSimulationBot(constraintGenerator, rng, 10000000);
         playoutBot = new ConstrainedRandomBot(constraintGenerator, rng);
-        Bot bot = new MctsBot(constraintGenerator, rng, 10000, 100, playoutBot);
+        Bot bot = new SmallMctsBot();
+//        Bot bot = new MctsBot(constraintGenerator, rng, 10000, 100, playoutBot);
 
 //        bot = playoutBot;//new ConstrainedRandomBot(new ConstraintGenerator(), rng);
         boolean verbose = false;
@@ -79,8 +82,10 @@ public class Main {
             System.out.println();
             System.out.println(PRINTER.getVisibleStateString(state));
         }
-        new SecureMover(new ConstraintGenerator()).applySecureMoves(state);
+        SecureMover secureMover = new SecureMover(new ConstraintGenerator());
+        secureMover.applySecureMoves(state);
         while (!state.isGameOver()) {
+            System.out.println(PRINTER.getVisibleStateString(state));
             int move = bot.findMove(state);
             int bestSquare = move;
             if (verbose) {
@@ -88,7 +93,7 @@ public class Main {
             }
             state.reveal(bestSquare);
             if(!state.isGameOver()) {
-                new SecureMover(new ConstraintGenerator()).applySecureMoves(state);
+                secureMover.applySecureMoves(state);
             }
             if (state.isLost()) {
                 if (verbose) {

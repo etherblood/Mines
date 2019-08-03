@@ -10,14 +10,14 @@ public class MinesPrinter {
 
     public String constraintStateString(MineConstraints constraints) {
         //TODO: render mines after gameover
-        long revealed = constraints.getRevealed();
+        long secured = constraints.getSecured();
         StringBuilder builder = new StringBuilder();
         for (int y = 7; y >= 0; y--) {
             for (int x = 0; x < 8; x++) {
                 builder.append('[');
                 int square = Util.square(x, y);
                 long flag = Util.toFlag(square);
-                if ((flag & revealed) != 0) {
+                if ((flag & secured) != 0) {
                     builder.append(constraints.countNeighborMines(square));
                 } else {
                     builder.append(' ');

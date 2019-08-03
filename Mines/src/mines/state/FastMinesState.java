@@ -15,6 +15,10 @@ public class FastMinesState implements MinesState {
         this(mines, 0);
     }
 
+    public FastMinesState(FastMinesState state) {
+        this(state.mines, state.revealed);
+    }
+
     public FastMinesState(long mines, long revealed) {
         this.mines = mines;
         this.revealed = revealed;
@@ -43,8 +47,13 @@ public class FastMinesState implements MinesState {
 
     @Override
     public void reveal(int square) {
-        assert (revealed & Util.toFlag(square)) == 0;
-        revealed |= Util.toFlag(square);
+        bulkReveal(Util.toFlag(square));
+    }
+
+    @Override
+    public void bulkReveal(long squares) {
+        assert (revealed & squares) == 0;
+        revealed |= squares;
     }
 
     @Override

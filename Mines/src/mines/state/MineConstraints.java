@@ -59,10 +59,20 @@ public class MineConstraints {
         return count;
     }
 
-    public long getRevealed() {
+    public long getSecured() {
         long result = 0;
         for (Constraint constraint : constraints) {
             if (constraint.getMineCount() == 0) {
+                result |= constraint.getSquares();
+            }
+        }
+        return result;
+    }
+    
+    public long getForcedBombs() {
+        long result = 0;
+        for (Constraint constraint : constraints) {
+            if (constraint.getMineCount() == Long.bitCount(constraint.getSquares())) {
                 result |= constraint.getSquares();
             }
         }
@@ -86,7 +96,7 @@ public class MineConstraints {
         if (!(obj instanceof MineConstraints)) {
             return false;
         }
-        final MineConstraints other = (MineConstraints) obj;
+        MineConstraints other = (MineConstraints) obj;
         return other.constraints.equals(constraints);
     }
 

@@ -24,7 +24,7 @@ import mines.state.MineConstraints;
 public class MctsAgent {
 
     private final Map<MineConstraints, MctsNode> nodeMap = new HashMap<>();
-    private final SecureMover secureMover = new SecureMover(null);
+    private final SecureMover secureMover = new SecureMover(new ConstraintGenerator());
     private final Random random = new Random();
     private final UctScore uct = new UctScore();
     private final VisitScore visit = new VisitScore();
@@ -41,7 +41,7 @@ public class MctsAgent {
         MctsNode node = startNode;
         MineConstraints currentConstraints = new MineConstraints(constraints);
         while (node != null) {
-            long hiddenSquares = ~currentConstraints.getRevealed();
+            long hiddenSquares = ~currentConstraints.getSecured();
             int square = selectChild(node, uct, hiddenSquares);
             long mines = Util.constrainedRandomBits(random, currentConstraints.getConstraints());
             long squareFlag = Util.toFlag(square);
@@ -76,12 +76,12 @@ public class MctsAgent {
         //expand end
         //playout
         long mines = Util.constrainedRandomBits(random, currentConstraints.getConstraints());
-        long revealed = constraints.getRevealed();
+        long revealed = constraints.getSecured();
         FastMinesState minesState = new FastMinesState(mines, revealed);
         while (!minesState.isGameOver()) {
             int square = playoutBot.findMove(minesState);
             minesState.reveal(square);
-            secureMover.applySecureMoves(minesState, new MineConstraints(new ConstraintGenerator().generateConstraints(minesState)));
+            secureMover.applySecureMoves(minesState);
         }
         //playout end
         //propagate
