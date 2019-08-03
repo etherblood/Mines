@@ -1,19 +1,12 @@
 package mines.bots.mcts_new;
 
 import java.security.SecureRandom;
-import mines.bots.mcts.*;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import mines.Constraint;
 import mines.ConstraintGenerator;
 import mines.IntList;
 import mines.Util;
-import static mines.Util.square;
 import mines.bots.Bot;
 import mines.bots.SecureMover;
 import mines.bots.mcts_old.ScoringFunction;
